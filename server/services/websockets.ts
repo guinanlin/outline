@@ -66,12 +66,23 @@ export default function init(
       if (req.url?.startsWith(path) && ioHandleUpgrade) {
         // For on-premise deployments, ensure the websocket origin matches the deployed URL.
         // In cloud-hosted we support any origin for custom domains.
-        if (
-          !env.isCloudHosted &&
-          (!req.headers.origin || !env.URL.startsWith(req.headers.origin))
-        ) {
-          socket.end(`HTTP/1.1 400 Bad Request\r\n`);
-          return;
+        // For reverse proxy scenarios, also check X-Forwarded-Host header
+        if (!env.isCloudHosted) {
+          const origin = req.headers.origin;
+          const forwardedHost = req.headers["x-forwarded-host"];
+          const urlHost = new URL(env.URL).host;
+
+          // Allow if origin matches env.URL, or if forwarded host matches
+          const originMatches =
+            origin && (env.URL.startsWith(origin) || origin.includes(urlHost));
+          const forwardedMatches =
+            forwardedHost &&
+            (forwardedHost === urlHost || forwardedHost.includes(urlHost));
+
+          if (!originMatches && !forwardedMatches) {
+            socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+            return;
+          }
         }
 
         ioHandleUpgrade(req, socket, head);

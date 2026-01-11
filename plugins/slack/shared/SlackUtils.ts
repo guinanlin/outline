@@ -39,9 +39,22 @@ export class SlackUtils {
       params: undefined,
     }
   ) {
+    // If OAUTH_CALLBACK_PROTOCOL is set, override the protocol in the base URL
+    let callbackBaseUrl = baseUrl;
+    const oauthCallbackProtocol = env.OAUTH_CALLBACK_PROTOCOL;
+    if (oauthCallbackProtocol) {
+      try {
+        const url = new URL(baseUrl);
+        url.protocol = oauthCallbackProtocol + ":";
+        callbackBaseUrl = url.toString().replace(/\/$/, "");
+      } catch (_err) {
+        // If URL parsing fails, use baseUrl as-is
+      }
+    }
+    
     return params
-      ? `${baseUrl}/auth/slack.callback?${params}`
-      : `${baseUrl}/auth/slack.callback`;
+      ? `${callbackBaseUrl}/auth/slack.callback?${params}`
+      : `${callbackBaseUrl}/auth/slack.callback`;
   }
 
   static connectUrl(

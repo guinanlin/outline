@@ -1,0 +1,81 @@
+services:
+  # Outline 应用
+  outline:
+    image: outline:latest  # 使用本地构建的镜像
+    container_name: outline
+    restart: unless-stopped
+    ports:
+      - "3300:3300"
+    environment:
+      # 核心配置
+      NODE_ENV: production
+      SECRET_KEY: ${SECRET_KEY}  # 从 .env 文件读取
+      UTILS_SECRET: ${UTILS_SECRET}
+      URL: ${URL}
+      
+      # 数据库配置
+      # 优先使用 .env 中的 DATABASE_URL，如果没有则使用拼接的方式
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}}
+      PGSSLMODE: ${PGSSLMODE:-disable}  # 本地测试禁用 SSL，生产环境建议启用
+      
+      # Redis 配置
+      REDIS_URL: redis://redis:6379
+      
+      # 文件存储
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+      
+      # 认证配置（首次安装时可选，初始化后可通过管理界面配置）
+      # GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      # GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      
+      # 可选配置
+      PORT: 3300
+      FORCE_HTTPS: ${FORCE_HTTPS:-false}  # 本地测试禁用 HTTPS，生产环境应设置为 true
+      WEB_CONCURRENCY: 4
+    volumes:
+      - outline-data:/var/lib/outline/data
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3300/_health"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: outline-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: outline-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  outline-data:
+  postgres-data:
+  redis-data:

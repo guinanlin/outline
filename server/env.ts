@@ -228,6 +228,18 @@ export class Environment {
   );
 
   /**
+   * Protocol to use for OAuth callback URLs (http or https).
+   * If not set, uses the protocol from URL environment variable.
+   * Useful when URL is set to http for internal access but OAuth callbacks
+   * need to use https (e.g., when behind a reverse proxy).
+   */
+  @IsOptional()
+  @IsIn(["http", "https"])
+  public OAUTH_CALLBACK_PROTOCOL = this.toOptionalString(
+    environment.OAUTH_CALLBACK_PROTOCOL
+  ) as "http" | "https" | undefined;
+
+  /**
    * The fully qualified, external facing domain name of the collaboration
    * service, if different (unlikely)
    */

@@ -1,0 +1,51 @@
+# ===== 核心配置（必需）=====
+# SECRET_KEY: 用于数据加密，一旦设置不要更改，否则用户无法登录
+SECRET_KEY=28689a6eb08ad0740494b6801a9e9bd013c0f5573366e98da240b42859c82c76
+
+# UTILS_SECRET: 用于 cron 任务触发
+UTILS_SECRET=fd1c20e15c80169bc6523702382bcb71
+
+# URL: Outline 访问地址，必须包含协议（https:// 或 http://）
+# 示例: https://outline.yourdomain.com
+# 如果使用 IP: http://your-server-ip:3300
+# 注意：如果使用 HTTP，请设置为 http:// 开头
+# 重要：如果通过反向代理（如 frpc、Nginx）访问，应将 URL 设置为代理后的域名和协议
+# 例如：如果通过 frpc 转发到 outline.st.datangyuan.cn 并使用 HTTPS，应设置为：
+# URL=https://outline.st.datangyuan.cn
+# 这样 WebSocket 连接、API 请求和 OAuth 回调 URL 才能正常工作
+# 注意：如果通过反向代理访问，URL 可以设置为 HTTP（用于内部访问）
+# 如果需要 OAuth 回调使用 HTTPS，可以设置 OAUTH_CALLBACK_PROTOCOL=https
+URL=http://192.168.1.255:3300
+
+# ===== 数据库配置（必需）=====
+DB_USER=outline
+DB_PASSWORD=your-secure-database-password-here
+DB_NAME=outline
+
+# ===== OAuth 认证配置（至少配置一个）=====
+# Google OAuth（推荐）
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# 或者使用 Slack OAuth（可选）
+# SLACK_CLIENT_ID=your-slack-client-id
+# SLACK_CLIENT_SECRET=your-slack-client-secret
+
+# ===== 可选配置 =====
+# HTTPS 强制跳转（生产环境建议开启）
+# 注意：如果使用外部反向代理（如 Nginx）处理 HTTPS，设置为 false
+FORCE_HTTPS=false
+
+# OAuth 回调 URL 协议（可选）
+# 如果设置了此变量，OAuth 回调 URL 将使用此协议（http 或 https）
+# 而不是 URL 环境变量中的协议
+# 用途：当 URL 设置为 http 用于内部访问，但 OAuth 回调需要通过 https 访问时
+# 例如：URL=http://192.168.1.255:3300, OAUTH_CALLBACK_PROTOCOL=https
+# 这样回调 URL 会是 https://outline.st.datangyuan.cn/auth/slack.callback
+OAUTH_CALLBACK_PROTOCOL=https
+
+# 进程并发数（建议设置为 CPU 核心数）
+WEB_CONCURRENCY=4
+
+# PostgreSQL SSL 模式（如果使用外部数据库，设置为 require）
+PGSSLMODE=disable
