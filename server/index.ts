@@ -81,7 +81,17 @@ async function start(_id: number, disconnect: () => void) {
     app.use(logger((str) => Logger.info("http", str)));
   }
 
-  app.use(helmet());
+  // Configure helmet with HSTS only when using HTTPS
+  app.use(
+    helmet({
+      hsts: useHTTPS
+        ? {
+          maxAge: 15552000, // 180 days
+          includeSubDomains: true,
+        }
+        : false,
+    })
+  );
 
   // catch errors in one place, automatically set status and response headers
   onerror(app);
@@ -203,8 +213,7 @@ async function start(_id: number, disconnect: () => void) {
 
     Logger.info(
       "lifecycle",
-      `Listening on ${useHTTPS ? "https" : "http"}://localhost:${port} / ${
-        env.URL
+      `Listening on ${useHTTPS ? "https" : "http"}://localhost:${port} / ${env.URL
       }`
     );
   });

@@ -35,26 +35,13 @@ export class SlackUtils {
 
   static callbackUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
-      baseUrl: env.URL,
+      baseUrl: env.OAUTH_CALLBACK_BASE_URL || env.URL,
       params: undefined,
     }
   ) {
-    // If OAUTH_CALLBACK_PROTOCOL is set, override the protocol in the base URL
-    let callbackBaseUrl = baseUrl;
-    const oauthCallbackProtocol = env.OAUTH_CALLBACK_PROTOCOL;
-    if (oauthCallbackProtocol) {
-      try {
-        const url = new URL(baseUrl);
-        url.protocol = oauthCallbackProtocol + ":";
-        callbackBaseUrl = url.toString().replace(/\/$/, "");
-      } catch (_err) {
-        // If URL parsing fails, use baseUrl as-is
-      }
-    }
-    
     return params
-      ? `${callbackBaseUrl}/auth/slack.callback?${params}`
-      : `${callbackBaseUrl}/auth/slack.callback`;
+      ? `${baseUrl}/auth/slack.callback?${params}`
+      : `${baseUrl}/auth/slack.callback`;
   }
 
   static connectUrl(

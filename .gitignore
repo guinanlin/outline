@@ -4,6 +4,10 @@ node_modules/*
 .env
 .env.local
 .env.production
+.env.development
+.env.test
+.env.local
+.env.docker
 .log
 .vscode/*
 npm-debug.log

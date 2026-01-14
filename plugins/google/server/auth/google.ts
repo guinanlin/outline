@@ -22,6 +22,7 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
+import serverEnv from "@server/env";
 import { createContext } from "@server/context";
 
 const router = new Router();
@@ -46,7 +47,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
       {
         clientID: env.GOOGLE_CLIENT_ID,
         clientSecret: env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${env.URL}/auth/${config.id}.callback`,
+        callbackURL: `${serverEnv.OAUTH_CALLBACK_BASE_URL || env.URL}/auth/${config.id}.callback`,
         passReqToCallback: true,
         // @ts-expect-error StateStore
         store: new StateStore(),

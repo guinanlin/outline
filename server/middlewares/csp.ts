@@ -54,7 +54,14 @@ export default function createCSPMiddleware() {
     scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
     scriptSrc.push("localhost:3001");
   } else {
+    // Use the actual request protocol if URL is HTTP but server is HTTPS
+    // This handles the case where URL env is HTTP but server has SSL certs
+    const urlObj = new URL(env.URL);
     scriptSrc.push(env.URL);
+    // Also add HTTPS version if URL is HTTP (for mixed protocol scenarios)
+    if (urlObj.protocol === "http:") {
+      scriptSrc.push(env.URL.replace("http://", "https://"));
+    }
   }
 
   if (env.GOOGLE_ANALYTICS_ID) {
@@ -76,13 +83,23 @@ export default function createCSPMiddleware() {
   return function cspMiddleware(ctx: Context, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
 
+    // Dynamically adjust scriptSrc based on actual request protocol
+    // This handles the case where URL env is HTTP but server is HTTPS
+    const requestProtocol = ctx.protocol;
+    const finalScriptSrc = [...uniq(scriptSrc)];
+
+    // If request is HTTPS but URL env is HTTP, also allow HTTPS version
+    if (requestProtocol === "https" && env.URL.startsWith("http://")) {
+      finalScriptSrc.push(env.URL.replace("http://", "https://"));
+    }
+
     return contentSecurityPolicy({
       directives: {
         baseUri: ["'none'"],
         defaultSrc,
         styleSrc,
         scriptSrc: [
-          ...uniq(scriptSrc),
+          ...finalScriptSrc,
           env.DEVELOPMENT_UNSAFE_INLINE_CSP
             ? "'unsafe-inline'"
             : `'nonce-${ctx.state.cspNonce}'`,

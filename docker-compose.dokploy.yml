@@ -10,6 +10,7 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       UTILS_SECRET: ${UTILS_SECRET}
       URL: ${URL}
+      OAUTH_CALLBACK_BASE_URL: ${OAUTH_CALLBACK_BASE_URL:-}
       DATABASE_URL: ${DATABASE_URL:-postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}}
       PGSSLMODE: ${PGSSLMODE:-disable}
       REDIS_URL: redis://redis:6379
@@ -21,7 +22,14 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       SLACK_CLIENT_ID: ${SLACK_CLIENT_ID:-}
       SLACK_CLIENT_SECRET: ${SLACK_CLIENT_SECRET:-}
-      OAUTH_CALLBACK_PROTOCOL: ${OAUTH_CALLBACK_PROTOCOL:-}
+      SMTP_SERVICE: ${SMTP_SERVICE:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_REPLY_EMAIL: ${SMTP_REPLY_EMAIL:-}
     volumes:
       - outline-data:/var/lib/outline/data
     depends_on:
@@ -68,6 +76,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: outline-mailhog
+    restart: unless-stopped
+    ports:
+      - "8025:8025"  # Web UI 端口
+      - "1025:1025"  # SMTP 端口
+    networks:
+      - dokploy-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8025"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   outline-data:

@@ -228,16 +228,24 @@ export class Environment {
   );
 
   /**
-   * Protocol to use for OAuth callback URLs (http or https).
-   * If not set, uses the protocol from URL environment variable.
-   * Useful when URL is set to http for internal access but OAuth callbacks
-   * need to use https (e.g., when behind a reverse proxy).
+   * The base URL used for OAuth callback URLs. If not set, defaults to URL.
+   * This is useful when the internal URL uses HTTP but external access uses HTTPS
+   * through a reverse proxy. OAuth providers require the callback URL to match
+   * the external accessible URL.
+   * Example: URL=http://192.168.1.1:3300, OAUTH_CALLBACK_BASE_URL=https://outline.example.com
    */
+  @Public
   @IsOptional()
-  @IsIn(["http", "https"])
-  public OAUTH_CALLBACK_PROTOCOL = this.toOptionalString(
-    environment.OAUTH_CALLBACK_PROTOCOL
-  ) as "http" | "https" | undefined;
+  @IsUrl({
+    protocols: ["http", "https"],
+    require_protocol: true,
+    require_tld: false,
+  })
+  public OAUTH_CALLBACK_BASE_URL = this.toOptionalString(
+    environment.OAUTH_CALLBACK_BASE_URL
+      ? environment.OAUTH_CALLBACK_BASE_URL.replace(/\/$/, "")
+      : undefined
+  );
 
   /**
    * The fully qualified, external facing domain name of the collaboration

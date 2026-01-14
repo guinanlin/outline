@@ -5,6 +5,9 @@ up:
 	yarn dev:watch
 
 build:
+	@echo "生成 SSL 证书..."
+	@LOCAL_NETWORK=192.168.0.0/16 yarn install-local-ssl || true
+	@echo "构建 Docker 镜像..."
 	docker compose build --pull outline
 
 test:
