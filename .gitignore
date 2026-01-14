@@ -19,6 +19,7 @@ data/*
 *.key
 *.cert
 server/config/certs/*
+dokploy-env.txt
 
 # Yarn Berry
 .yarn/*
